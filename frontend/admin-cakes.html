@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Cakes - CakeCraft Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <section class="section">
+    <h1 class="section-title" data-testid="admin-cakes-heading">Manage Cakes</h1>
+    <p class="section-subtitle">Manage your cake inventory, pricing, and availability</p>
+
+    <!-- Stats Row -->
+    <div class="stats-grid" id="cake-stats"></div>
+
+    <!-- Table Card -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-wrap" style="position:relative">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-secondary);pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" class="form-input" style="padding-left:40px" placeholder="Search by name or category..." id="search-cakes" data-testid="search-cakes-input">
+        </div>
+        <button class="btn btn-primary" onclick="openAddModal()" data-testid="add-cake-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Add New Cake
+        </button>
+      </div>
+
+      <div id="loading-spinner"><div class="spinner"></div></div>
+
+      <div class="table-scroll hidden" id="table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Cake</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cakes-tbody" data-testid="cakes-table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="empty-state hidden" id="empty-state">No cakes found</div>
+    </div>
+  </section>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay hidden" id="cake-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Add New Cake</h2>
+        <p id="modal-subtitle">Create a new cake product for your shop</p>
+      </div>
+
+      <div class="modal-preview hidden" id="image-preview-wrap">
+        <img id="image-preview" src="" alt="Preview">
+      </div>
+
+      <form id="cake-form" data-testid="cake-form">
+        <input type="hidden" id="edit-cake-id">
+
+        <div class="form-group">
+          <label for="image_url">Image URL *</label>
+          <div class="form-row-inline">
+            <input type="url" id="image_url" class="form-input" required placeholder="https://example.com/cake.jpg" data-testid="image-url-input">
+            <button type="button" class="btn btn-outline" onclick="previewImage()" style="padding:10px 14px;flex-shrink:0" title="Preview image">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            </button>
+          </div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Enter image URL and click upload icon to preview</p>
+        </div>
+
+        <div class="form-group">
+          <label for="cake_name">Cake Name *</label>
+          <input type="text" id="cake_name" class="form-input" required placeholder="e.g., Chocolate Truffle Cake" data-testid="cake-name-input">
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" class="form-input" rows="3" placeholder="Describe your delicious cake..." data-testid="description-input"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="base_price">Base Price (&#8377;) *</label>
+            <input type="number" id="base_price" class="form-input" required min="0" step="0.01" placeholder="e.g., 850" data-testid="price-input">
+          </div>
+          <div class="form-group">
+            <label for="stock">Stock Quantity</label>
+            <input type="number" id="stock" class="form-input" min="0" value="10" placeholder="10" data-testid="stock-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" class="form-input" data-testid="category-select">
+            <option value="Chocolate">Chocolate</option>
+            <option value="Fruit">Fruit</option>
+            <option value="Classic">Classic</option>
+            <option value="Cheesecake">Cheesecake</option>
+            <option value="Special">Special</option>
+          </select>
+        </div>
+
+        <div class="switch-group">
+          <div>
+            <div class="switch-label">Available for Sale</div>
+            <div class="switch-desc">Enable to make this cake available for purchase</div>
+          </div>
+          <label class="toggle-switch" data-testid="in-stock-switch">
+            <input type="checkbox" id="in_stock" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal()" data-testid="cancel-button">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="form-submit-btn" data-testid="submit-button">Add Cake</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation -->
+  <div class="modal-overlay hidden" id="delete-modal">
+    <div class="modal confirm-dialog">
+      <h3>Are you sure?</h3>
+      <p id="delete-message">This will permanently delete this cake. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeDeleteModal()" data-testid="cancel-delete">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmDelete()" data-testid="confirm-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let allCakes = [];
+    let deletingCakeId = null;
+    let editingMode = false;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuthStatus();
+      if (!user || user.role !== 'admin') {
+        showToast('Admin access required', 'error');
+        window.location.href = '/login.html';
+        return;
+      }
+      buildNavbar('navbar');
+      await loadCakes();
+
+      document.getElementById('search-cakes').addEventListener('input', renderFilteredCakes);
+      document.getElementById('cake-form').addEventListener('submit', handleFormSubmit);
+    });
+
+    async function loadCakes() {
+      try {
+        allCakes = await apiCall('/cakes');
+        document.getElementById('loading-spinner').classList.add('hidden');
+        renderStats();
+        renderFilteredCakes();
+      } catch (err) {
+        showToast('Failed to load cakes', 'error');
+        document.getElementById('loading-spinner').classList.add('hidden');
+      }
+    }
+
+    function renderStats() {
+      const inStock = allCakes.filter(c => c.in_stock).length;
+      const outOfStock = allCakes.filter(c => !c.in_stock).length;
+      const avgPrice = allCakes.length > 0 ? Math.round(allCakes.reduce((s, c) => s + c.base_price, 0) / allCakes.length) : 0;
+
+      document.getElementById('cake-stats').innerHTML = `
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary)">Total Cakes</span>
+            <span style="color:var(--primary)">${Icons.packages}</span>
+          </div>
+          <p class="stat-value" data-testid="total-cakes-stat">${allCakes.length}</p>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary)">In Stock</span>
+            <span style="color:var(--success)">${Icons.trendUp}</span>
+          </div>
+          <p class="stat-value success" data-testid="in-stock-stat">${inStock}</p>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary)">Out of Stock</span>
+            <span style="color:var(--error)">${Icons.trendDown}</span>
+          </div>
+          <p class="stat-value error" data-testid="out-of-stock-stat">${outOfStock}</p>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary)">Avg Price</span>
+            <span style="color:var(--primary)">${Icons.dollar}</span>
+          </div>
+          <p class="stat-value" data-testid="avg-price-stat">${'\u20B9'}${avgPrice}</p>
+        </div>
+      `;
+    }
+
+    function renderFilteredCakes() {
+      const search = document.getElementById('search-cakes').value.toLowerCase();
+      let filtered = allCakes;
+      if (search) {
+        filtered = filtered.filter(c =>
+          c.name.toLowerCase().includes(search) || c.category.toLowerCase().includes(search)
+        );
+      }
+      renderTable(filtered);
+    }
+
+    function renderTable(cakes) {
+      const tbody = document.getElementById('cakes-tbody');
+      const container = document.getElementById('table-container');
+      const empty = document.getElementById('empty-state');
+
+      if (cakes.length === 0) {
+        container.classList.add('hidden');
+        empty.classList.remove('hidden');
+        empty.textContent = document.getElementById('search-cakes').value ? 'No cakes found matching your search' : 'No cakes available';
+        return;
+      }
+
+      empty.classList.add('hidden');
+      container.classList.remove('hidden');
+
+      tbody.innerHTML = cakes.map(cake => `
+        <tr data-testid="cake-row-${cake.cake_id}">
+          <td>
+            <div class="cake-info">
+              <img class="cake-thumb" src="${cake.image_url}" alt="${cake.name}" loading="lazy">
+              <div>
+                <div class="cake-name">${cake.name}</div>
+                <div class="cake-desc">${cake.description}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="table-badge cat">${cake.category}</span></td>
+          <td><span class="table-price">${'\u20B9'}${cake.base_price}</span></td>
+          <td>${cake.stock}</td>
+          <td>
+            <button class="status-toggle ${cake.in_stock ? 'in-stock' : 'out-of-stock'}"
+              onclick="toggleStock('${cake.cake_id}', ${cake.in_stock})"
+              data-testid="status-badge-${cake.cake_id}">
+              ${cake.in_stock ? 'In Stock' : 'Out of Stock'}
+            </button>
+          </td>
+          <td>
+            <div class="action-btns">
+              <button class="action-btn edit" onclick="openEditModal('${cake.cake_id}')" data-testid="edit-cake-${cake.cake_id}">
+                ${Icons.edit} Edit
+              </button>
+              <button class="action-btn delete" onclick="openDeleteModal('${cake.cake_id}', '${cake.name.replace(/'/g, "\\'")}')" data-testid="delete-cake-${cake.cake_id}">
+                ${Icons.trash} Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    /* ---- Stock Toggle ---- */
+    async function toggleStock(cakeId, currentStatus) {
+      try {
+        const data = await apiCall(`/cakes/${cakeId}`, {
+          method: 'PUT',
+          body: { in_stock: !currentStatus },
+        });
+        allCakes = allCakes.map(c => c.cake_id === cakeId ? data : c);
+        renderStats();
+        renderFilteredCakes();
+        showToast(`Cake marked as ${!currentStatus ? 'in stock' : 'out of stock'}`, 'success');
+      } catch (err) {
+        showToast('Failed to update stock', 'error');
+      }
+    }
+
+    /* ---- Add Modal ---- */
+    function openAddModal() {
+      editingMode = false;
+      document.getElementById('modal-title').textContent = 'Add New Cake';
+      document.getElementById('modal-subtitle').textContent = 'Create a new cake product for your shop';
+      document.getElementById('form-submit-btn').textContent = 'Add Cake';
+      document.getElementById('cake-form').reset();
+      document.getElementById('edit-cake-id').value = '';
+      document.getElementById('in_stock').checked = true;
+      document.getElementById('image-preview-wrap').classList.add('hidden');
+      document.getElementById('cake-modal').classList.remove('hidden');
+    }
+
+    /* ---- Edit Modal ---- */
+    function openEditModal(cakeId) {
+      const cake = allCakes.find(c => c.cake_id === cakeId);
+      if (!cake) return;
+
+      editingMode = true;
+      document.getElementById('modal-title').textContent = 'Edit Cake';
+      document.getElementById('modal-subtitle').textContent = 'Update cake details and manage inventory';
+      document.getElementById('form-submit-btn').textContent = 'Save Changes';
+      document.getElementById('edit-cake-id').value = cake.cake_id;
+      document.getElementById('image_url').value = cake.image_url || '';
+      document.getElementById('cake_name').value = cake.name || '';
+      document.getElementById('description').value = cake.description || '';
+      document.getElementById('base_price').value = cake.base_price || '';
+      document.getElementById('stock').value = cake.stock || 0;
+      document.getElementById('category').value = cake.category || 'Chocolate';
+      document.getElementById('in_stock').checked = cake.in_stock !== false;
+
+      if (cake.image_url) {
+        document.getElementById('image-preview').src = cake.image_url;
+        document.getElementById('image-preview-wrap').classList.remove('hidden');
+      } else {
+        document.getElementById('image-preview-wrap').classList.add('hidden');
+      }
+
+      document.getElementById('cake-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('cake-modal').classList.add('hidden');
+    }
+
+    function previewImage() {
+      const url = document.getElementById('image_url').value;
+      if (url) {
+        document.getElementById('image-preview').src = url;
+        document.getElementById('image-preview-wrap').classList.remove('hidden');
+      }
+    }
+
+    /* ---- Form Submit (Add or Edit) ---- */
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('form-submit-btn');
+      const cakeId = document.getElementById('edit-cake-id').value;
+      const name = document.getElementById('cake_name').value;
+      const description = document.getElementById('description').value;
+      const base_price = parseFloat(document.getElementById('base_price').value);
+      const stock = parseInt(document.getElementById('stock').value) || 10;
+      const category = document.getElementById('category').value;
+      const image_url = document.getElementById('image_url').value;
+      const in_stock = document.getElementById('in_stock').checked;
+
+      if (!name || !base_price || !image_url) {
+        showToast('Name, price, and image are required', 'error');
+        return;
+      }
+
+      if (isNaN(base_price) || base_price <= 0) {
+        showToast('Please enter a valid price', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = editingMode ? 'Saving...' : 'Adding...';
+
+      const flavorMap = {
+        'Chocolate': ['Chocolate', 'Dark Chocolate', 'White Chocolate'],
+        'Fruit': ['Strawberry', 'Blueberry', 'Mixed Berry'],
+        'Classic': ['Vanilla', 'Butterscotch', 'Caramel'],
+        'Cheesecake': ['Classic', 'Blueberry', 'Strawberry'],
+        'Special': ['Red Velvet', 'Black Forest', 'Pineapple'],
+      };
+
+      const body = { name, description, base_price, stock, category, image_url, in_stock, flavors: flavorMap[category] || ['Vanilla', 'Chocolate'] };
+
+      try {
+        if (editingMode && cakeId) {
+          const data = await apiCall(`/cakes/${cakeId}`, { method: 'PUT', body });
+          allCakes = allCakes.map(c => c.cake_id === cakeId ? data : c);
+          showToast('Cake updated successfully!', 'success');
+        } else {
+          const data = await apiCall('/cakes', { method: 'POST', body });
+          allCakes.unshift(data);
+          showToast('Cake added successfully!', 'success');
+        }
+        closeModal();
+        renderStats();
+        renderFilteredCakes();
+      } catch (err) {
+        showToast(err.message || 'Failed to save cake', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = editingMode ? 'Save Changes' : 'Add Cake';
+      }
+    }
+
+    /* ---- Delete ---- */
+    function openDeleteModal(cakeId, cakeName) {
+      deletingCakeId = cakeId;
+      document.getElementById('delete-message').innerHTML = `This will permanently delete <strong>${cakeName}</strong>. This action cannot be undone.`;
+      document.getElementById('delete-modal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      deletingCakeId = null;
+      document.getElementById('delete-modal').classList.add('hidden');
+    }
+
+    async function confirmDelete() {
+      if (!deletingCakeId) return;
+      try {
+        await apiCall(`/cakes/${deletingCakeId}`, { method: 'DELETE' });
+        allCakes = allCakes.filter(c => c.cake_id !== deletingCakeId);
+        showToast('Cake deleted successfully', 'success');
+        closeDeleteModal();
+        renderStats();
+        renderFilteredCakes();
+      } catch (err) {
+        showToast('Failed to delete cake', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

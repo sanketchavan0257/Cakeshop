@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - CakeCraft</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <section class="section">
+    <h1 class="section-title" data-testid="admin-dashboard-heading">Admin Dashboard</h1>
+    <p class="section-subtitle">Overview of your cake shop</p>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="skeleton" style="height:80px"></div></div>
+      <div class="stat-card"><div class="skeleton" style="height:80px"></div></div>
+      <div class="stat-card"><div class="skeleton" style="height:80px"></div></div>
+      <div class="stat-card"><div class="skeleton" style="height:80px"></div></div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="admin-links">
+      <a href="/admin-cakes.html" class="admin-link-card" data-testid="manage-cakes-link">
+        <h3>Manage Cakes</h3>
+        <p>Add, edit, and manage your cake inventory</p>
+      </a>
+      <a href="/admin-orders.html" class="admin-link-card" data-testid="manage-orders-link">
+        <h3>Manage Orders</h3>
+        <p>View and manage customer orders</p>
+      </a>
+      <a href="/admin-users.html" class="admin-link-card" data-testid="manage-users-link">
+        <h3>Manage Users</h3>
+        <p>View registered users</p>
+      </a>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuthStatus();
+      if (!user || user.role !== 'admin') {
+        showToast('Admin access required', 'error');
+        window.location.href = '/login.html';
+        return;
+      }
+      buildNavbar('navbar');
+      await fetchStats();
+    });
+
+    async function fetchStats() {
+      try {
+        const stats = await apiCall('/admin/stats');
+        document.getElementById('stats-grid').innerHTML = `
+          <div class="stat-card">
+            <div class="stat-icon">${Icons.users}</div>
+            <p class="stat-value" data-testid="total-users">${stats.total_users}</p>
+            <p class="stat-label">Total Users</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">${Icons.packages}</div>
+            <p class="stat-value" data-testid="total-orders">${stats.total_orders}</p>
+            <p class="stat-label">Total Orders</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="color:var(--primary)">${Icons.shoppingBag}</div>
+            <p class="stat-value" data-testid="total-cakes">${stats.total_cakes}</p>
+            <p class="stat-label">Total Cakes</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">${Icons.dollar}</div>
+            <p class="stat-value" data-testid="total-revenue">${'\u20B9'}${stats.total_revenue}</p>
+            <p class="stat-label">Total Revenue</p>
+          </div>
+        `;
+      } catch (err) {
+        showToast('Failed to load stats', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cake Details - CakeCraft</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .product-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) { .product-layout { grid-template-columns: 1fr; gap: 24px; } }
+    .product-image {
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .product-image img {
+      width: 100%;
+      height: 420px;
+      object-fit: cover;
+    }
+    .product-info h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    .product-info .category-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      background: rgba(208,184,168,0.2);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .product-info .description {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+    .product-info .price-section {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .product-info .price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: var(--font-body);
+    }
+    .product-info .price-note {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .flavors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .flavor-chip {
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 24px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--primary-hover); }
+    .back-link svg { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <section class="section">
+    <a href="/" class="back-link" data-testid="back-to-shop">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+      Back to Shop
+    </a>
+
+    <div id="loading"><div class="spinner"></div></div>
+
+    <div class="product-layout hidden" id="product-content" data-testid="product-detail">
+      <div class="product-image">
+        <img id="cake-image" src="" alt="">
+      </div>
+      <div class="product-info">
+        <h1 id="cake-name"></h1>
+        <span class="category-badge" id="cake-category"></span>
+        <p class="description" id="cake-description"></p>
+        <div class="price-section">
+          <span class="price" id="cake-price"></span>
+          <span class="price-note">for 500g</span>
+        </div>
+        <div id="stock-status" style="margin-bottom:20px"></div>
+        <div id="flavors-container">
+          <p style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text)">Available Flavors</p>
+          <div class="flavors" id="flavors-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkAuthStatus();
+      buildNavbar('navbar');
+
+      const params = new URLSearchParams(window.location.search);
+      const cakeId = params.get('id');
+      if (!cakeId) {
+        showToast('No cake specified', 'error');
+        window.location.href = '/';
+        return;
+      }
+      await loadCake(cakeId);
+    });
+
+    async function loadCake(cakeId) {
+      try {
+        const cake = await apiCall(`/cakes/${cakeId}`);
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('product-content').classList.remove('hidden');
+
+        document.getElementById('cake-image').src = cake.image_url;
+        document.getElementById('cake-image').alt = cake.name;
+        document.getElementById('cake-name').textContent = cake.name;
+        document.getElementById('cake-category').textContent = cake.category;
+        document.getElementById('cake-description').textContent = cake.description;
+        document.getElementById('cake-price').textContent = '\u20B9' + cake.base_price;
+        document.title = `${cake.name} - CakeCraft`;
+
+        const statusEl = document.getElementById('stock-status');
+        if (cake.in_stock) {
+          statusEl.innerHTML = '<span class="stock-badge in-stock">In Stock</span>';
+        } else {
+          statusEl.innerHTML = '<span class="stock-badge out-of-stock">Out of Stock</span>';
+        }
+
+        const flavorsList = document.getElementById('flavors-list');
+        if (cake.flavors && cake.flavors.length) {
+          flavorsList.innerHTML = cake.flavors.map(f => `<span class="flavor-chip">${f}</span>`).join('');
+        } else {
+          document.getElementById('flavors-container').classList.add('hidden');
+        }
+      } catch (err) {
+        showToast('Cake not found', 'error');
+        setTimeout(() => { window.location.href = '/'; }, 1000);
+      }
+    }
+  </script>
+</body>
+</html>
