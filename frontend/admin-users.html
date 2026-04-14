@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users - CakeCraft Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .user-row {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 100px 140px;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 20px;
+    }
+    @media (max-width: 768px) {
+      .user-row { grid-template-columns: 1fr; gap: 6px; }
+    }
+    .user-name { font-weight: 600; color: var(--text); font-size: 14px; }
+    .user-email { font-size: 13px; color: var(--text-secondary); }
+    .user-role {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .user-role.admin { background: rgba(208,184,168,0.25); color: var(--primary-hover); }
+    .user-role.user { background: rgba(129,178,154,0.15); color: var(--success); }
+    .user-date { font-size: 12px; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <section class="section">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <a href="/admin.html" style="color:var(--primary);display:flex;align-items:center;gap:4px;font-size:14px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        Back to Dashboard
+      </a>
+    </div>
+    <h1 class="section-title" data-testid="admin-users-heading">Manage Users</h1>
+    <p class="section-subtitle">View all registered users</p>
+
+    <div class="stats-grid" id="user-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px"></div>
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-wrap" style="position:relative">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-secondary);pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" class="form-input" style="padding-left:40px" placeholder="Search by name or email..." id="search-users" data-testid="search-users-input">
+        </div>
+      </div>
+
+      <div id="loading"><div class="spinner"></div></div>
+
+      <div class="table-scroll hidden" id="table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody" data-testid="users-table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="empty-state hidden" id="empty-state">No users found</div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let allUsers = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuthStatus();
+      if (!user || user.role !== 'admin') {
+        showToast('Admin access required', 'error');
+        window.location.href = '/login.html';
+        return;
+      }
+      buildNavbar('navbar');
+      await loadUsers();
+      document.getElementById('search-users').addEventListener('input', renderFiltered);
+    });
+
+    async function loadUsers() {
+      try {
+        allUsers = await apiCall('/admin/users');
+        document.getElementById('loading').classList.add('hidden');
+        renderStats();
+        renderFiltered();
+      } catch (err) {
+        showToast('Failed to load users', 'error');
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    function renderStats() {
+      const admins = allUsers.filter(u => u.role === 'admin').length;
+      const regulars = allUsers.filter(u => u.role === 'user').length;
+      document.getElementById('user-stats').innerHTML = `
+        <div class="stat-card">
+          <p class="stat-value">${allUsers.length}</p>
+          <p class="stat-label">Total Users</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-value" style="color:var(--primary)">${admins}</p>
+          <p class="stat-label">Admins</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-value success">${regulars}</p>
+          <p class="stat-label">Regular Users</p>
+        </div>
+      `;
+    }
+
+    function renderFiltered() {
+      const search = document.getElementById('search-users').value.toLowerCase();
+      let filtered = allUsers;
+      if (search) {
+        filtered = filtered.filter(u =>
+          (u.name || '').toLowerCase().includes(search) ||
+          (u.email || '').toLowerCase().includes(search)
+        );
+      }
+      renderTable(filtered);
+    }
+
+    function renderTable(users) {
+      const tbody = document.getElementById('users-tbody');
+      const container = document.getElementById('table-container');
+      const empty = document.getElementById('empty-state');
+
+      if (users.length === 0) {
+        container.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      container.classList.remove('hidden');
+
+      tbody.innerHTML = users.map(user => {
+        const date = user.created_at ? new Date(user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+        return `
+          <tr data-testid="user-row-${user.email}">
+            <td><span class="user-name">${user.name || '-'}</span></td>
+            <td><span class="user-email">${user.email}</span></td>
+            <td><span class="user-role ${user.role}">${user.role}</span></td>
+            <td><span class="user-date">${date}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
