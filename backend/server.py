@@ -180,9 +180,10 @@ class WaitlistJoin(BaseModel):
 
 # ============ Startup Events ============
 
-@app.on_event("startup")
-async def startup_event():
-    # Verify MongoDB connection
+# ============ Startup Helpers ============
+
+async def _verify_db_connection():
+    """Verify MongoDB is reachable."""
     try:
         await client.admin.command('ping')
         logger.info("MongoDB Atlas connection successful!")
@@ -190,16 +191,18 @@ async def startup_event():
         logger.error(f"MongoDB connection failed: {e}")
         raise
 
-    # Create indexes
+async def _create_indexes():
+    """Create required database indexes."""
     await db.users.create_index("email", unique=True)
     await db.cakes.create_index("name")
     await db.password_reset_tokens.create_index("expires_at", expireAfterSeconds=0)
     await db.password_reset_tokens.create_index("token")
-    
-    # Seed admin
+
+async def _seed_admin():
+    """Seed or update the admin user and write test credentials."""
     admin_email = os.environ.get('ADMIN_EMAIL', 'admin@cakeshop.com')
     admin_password = os.environ.get('ADMIN_PASSWORD', 'Admin@123')
-    
+
     existing_admin = await db.users.find_one({"email": admin_email})
     if not existing_admin:
         admin_data = {
@@ -217,8 +220,11 @@ async def startup_event():
             {"$set": {"password_hash": hash_password(admin_password)}}
         )
         logger.info("Admin password updated")
-    
-    # Write test credentials
+
+    _write_test_credentials(admin_email, admin_password)
+
+def _write_test_credentials(admin_email: str, admin_password: str):
+    """Write test credentials file for testing agents."""
     Path("/app/memory").mkdir(exist_ok=True)
     with open("/app/memory/test_credentials.md", "w") as f:
         f.write("# Test Credentials\n\n")
@@ -231,110 +237,124 @@ async def startup_event():
         f.write("- POST /api/auth/login\n")
         f.write("- GET /api/auth/me\n")
         f.write("- POST /api/auth/logout\n")
-    
-    # Seed sample cakes if none exist
+
+def _get_sample_cakes() -> list:
+    """Return the list of sample cake seed data."""
+    return [
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Premium Chocolate Truffle",
+            "description": "Rich dark chocolate cake with truffle ganache",
+            "base_price": 800,
+            "image_url": "https://images.unsplash.com/photo-1640794334523-b299f14d28db?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
+            "category": "Chocolate",
+            "stock": 10,
+            "in_stock": True,
+            "flavors": ["Chocolate", "Dark Chocolate", "White Chocolate"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Strawberry Cream Delight",
+            "description": "Fresh strawberries with vanilla cream",
+            "base_price": 700,
+            "image_url": "https://images.unsplash.com/photo-1602663491496-73f07481dbea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxzdHJhd2JlcnJ5JTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
+            "category": "Fruit",
+            "stock": 8,
+            "in_stock": True,
+            "flavors": ["Strawberry", "Vanilla", "Mixed Berry"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Classic Vanilla Bean",
+            "description": "Premium vanilla bean cake with butter cream",
+            "base_price": 650,
+            "image_url": "https://images.unsplash.com/photo-1536599524557-5f784dd53282?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHx2YW5pbGxhJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
+            "category": "Classic",
+            "stock": 12,
+            "in_stock": True,
+            "flavors": ["Vanilla", "French Vanilla", "Madagascar Vanilla"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Golden Cheesecake",
+            "description": "New York style cheesecake with graham crust",
+            "base_price": 900,
+            "image_url": "https://images.unsplash.com/photo-1633062781822-e32867fe7d4a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwzfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
+            "category": "Cheesecake",
+            "stock": 6,
+            "in_stock": True,
+            "flavors": ["Classic", "Blueberry", "Caramel"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Red Velvet Supreme",
+            "description": "Classic red velvet with cream cheese frosting",
+            "base_price": 750,
+            "image_url": "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?crop=entropy&cs=srgb&fm=jpg&q=85",
+            "category": "Classic",
+            "stock": 0,
+            "in_stock": False,
+            "flavors": ["Red Velvet", "Pink Velvet"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Black Forest Cake",
+            "description": "Chocolate layers with cherries and cream",
+            "base_price": 850,
+            "image_url": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?crop=entropy&cs=srgb&fm=jpg&q=85",
+            "category": "Chocolate",
+            "stock": 7,
+            "in_stock": True,
+            "flavors": ["Chocolate Cherry", "Dark Forest"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Butterscotch Bliss",
+            "description": "Caramel butterscotch with crunchy toppings",
+            "base_price": 700,
+            "image_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?crop=entropy&cs=srgb&fm=jpg&q=85",
+            "category": "Special",
+            "stock": 9,
+            "in_stock": True,
+            "flavors": ["Butterscotch", "Caramel"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "cake_id": str(uuid.uuid4()),
+            "name": "Pineapple Paradise",
+            "description": "Tropical pineapple with fresh cream",
+            "base_price": 680,
+            "image_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?crop=entropy&cs=srgb&fm=jpg&q=85",
+            "category": "Fruit",
+            "stock": 10,
+            "in_stock": True,
+            "flavors": ["Pineapple", "Tropical Mix"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+    ]
+
+async def _seed_sample_cakes():
+    """Seed sample cakes if the collection is empty."""
     cake_count = await db.cakes.count_documents({})
     if cake_count == 0:
-        sample_cakes = [
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Premium Chocolate Truffle",
-                "description": "Rich dark chocolate cake with truffle ganache",
-                "base_price": 800,
-                "image_url": "https://images.unsplash.com/photo-1640794334523-b299f14d28db?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
-                "category": "Chocolate",
-                "stock": 10,
-                "in_stock": True,
-                "flavors": ["Chocolate", "Dark Chocolate", "White Chocolate"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            },
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Strawberry Cream Delight",
-                "description": "Fresh strawberries with vanilla cream",
-                "base_price": 700,
-                "image_url": "https://images.unsplash.com/photo-1602663491496-73f07481dbea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxzdHJhd2JlcnJ5JTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
-                "category": "Fruit",
-                "stock": 8,
-                "in_stock": True,
-                "flavors": ["Strawberry", "Vanilla", "Mixed Berry"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            },
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Classic Vanilla Bean",
-                "description": "Premium vanilla bean cake with butter cream",
-                "base_price": 650,
-                "image_url": "https://images.unsplash.com/photo-1536599524557-5f784dd53282?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHx2YW5pbGxhJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
-                "category": "Classic",
-                "stock": 12,
-                "in_stock": True,
-                "flavors": ["Vanilla", "French Vanilla", "Madagascar Vanilla"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            },
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Golden Cheesecake",
-                "description": "New York style cheesecake with graham crust",
-                "base_price": 900,
-                "image_url": "https://images.unsplash.com/photo-1633062781822-e32867fe7d4a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwzfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
-                "category": "Cheesecake",
-                "stock": 6,
-                "in_stock": True,
-                "flavors": ["Classic", "Blueberry", "Caramel"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            },
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Red Velvet Supreme",
-                "description": "Classic red velvet with cream cheese frosting",
-                "base_price": 750,
-                "image_url": "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?crop=entropy&cs=srgb&fm=jpg&q=85",
-                "category": "Classic",
-                "stock": 0,
-                "in_stock": False,
-                "flavors": ["Red Velvet", "Pink Velvet"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            },
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Black Forest Cake",
-                "description": "Chocolate layers with cherries and cream",
-                "base_price": 850,
-                "image_url": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?crop=entropy&cs=srgb&fm=jpg&q=85",
-                "category": "Chocolate",
-                "stock": 7,
-                "in_stock": True,
-                "flavors": ["Chocolate Cherry", "Dark Forest"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            },
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Butterscotch Bliss",
-                "description": "Caramel butterscotch with crunchy toppings",
-                "base_price": 700,
-                "image_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?crop=entropy&cs=srgb&fm=jpg&q=85",
-                "category": "Special",
-                "stock": 9,
-                "in_stock": True,
-                "flavors": ["Butterscotch", "Caramel"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            },
-            {
-                "cake_id": str(uuid.uuid4()),
-                "name": "Pineapple Paradise",
-                "description": "Tropical pineapple with fresh cream",
-                "base_price": 680,
-                "image_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?crop=entropy&cs=srgb&fm=jpg&q=85",
-                "category": "Fruit",
-                "stock": 10,
-                "in_stock": True,
-                "flavors": ["Pineapple", "Tropical Mix"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-        ]
+        sample_cakes = _get_sample_cakes()
         await db.cakes.insert_many(sample_cakes)
         logger.info(f"Seeded {len(sample_cakes)} sample cakes")
+
+# ============ Startup Event ============
+
+@app.on_event("startup")
+async def startup_event():
+    await _verify_db_connection()
+    await _create_indexes()
+    await _seed_admin()
+    await _seed_sample_cakes()
 
 # ============ Auth Routes ============
 
@@ -414,24 +434,31 @@ class ForgotPasswordRequest(BaseModel):
 @api_router.post("/auth/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
     email = request.email.lower()
-    
-    # STRICT VALIDATION: Check if email exists in database
+    user = await _validate_forgot_email(email)
+    reset_token, reset_link = await _generate_reset_token(email, user)
+    email_sent = await _send_reset_email(email, reset_link)
+    return {
+        "message": "Password reset link has been sent to your email",
+        "reset_link": reset_link if not email_sent else None
+    }
+
+async def _validate_forgot_email(email: str) -> dict:
+    """Check if email exists in database, raise 400 if not."""
     user = await db.users.find_one({"email": email})
-    
     if not user:
-        # Return error for invalid email (strict validation as requested)
         raise HTTPException(
             status_code=400,
             detail="Invalid email ID. This email is not registered."
         )
-    
-    # Generate secure token
+    return user
+
+async def _generate_reset_token(email: str, user: dict) -> tuple:
+    """Generate a secure reset token, store it, and return (token, reset_link)."""
     reset_token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
-    
+
     logger.info(f"Generated token for {email}: {reset_token[:10]}... (expires: {expires_at})")
-    
-    # Store token with user type (admin or user)
+
     token_doc = {
         "email": email,
         "token": reset_token,
@@ -440,16 +467,16 @@ async def forgot_password(request: ForgotPasswordRequest):
         "used": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    
     await db.password_reset_tokens.insert_one(token_doc)
     logger.info(f"Token stored in database for {email}")
-    
-    # Generate reset link
+
     frontend_url = os.getenv('FRONTEND_URL', 'https://cake-craft-plus.preview.emergentagent.com')
     reset_link = f"{frontend_url}/reset-password?token={reset_token}"
-    
-    # Send email
-    email_html = f"""
+    return reset_token, reset_link
+
+def _build_reset_email_html(reset_link: str) -> str:
+    """Build the HTML email body for a password reset."""
+    return f"""
     <!DOCTYPE html>
     <html>
     <head>
@@ -489,23 +516,20 @@ async def forgot_password(request: ForgotPasswordRequest):
     </body>
     </html>
     """
-    
-    # Try to send email
+
+async def _send_reset_email(email: str, reset_link: str) -> bool:
+    """Attempt to send the password reset email. Returns True if sent."""
+    email_html = _build_reset_email_html(reset_link)
     email_sent = await send_email(
         to_email=email,
         subject="Reset Your CakeCraft Password",
         html_content=email_html
     )
-    
     if email_sent:
         logger.info(f"Password reset email sent to {email}")
     else:
         logger.warning(f"Email not sent (SMTP not configured). Reset link: {reset_link}")
-    
-    return {
-        "message": "Password reset link has been sent to your email",
-        "reset_link": reset_link if not email_sent else None  # Only show link if email failed
-    }
+    return email_sent
 
 class ResetPasswordRequest(BaseModel):
     token: str
@@ -515,66 +539,74 @@ class ResetPasswordRequest(BaseModel):
 async def reset_password(request: ResetPasswordRequest):
     token = request.token
     new_password = request.new_password
-    
+
     logger.info(f"Reset password attempt with token: {token[:10]}...")
-    
-    # Find token in database
+
+    reset_doc = await _verify_reset_token(token)
+    _validate_new_password(new_password)
+    await _update_user_password(reset_doc["email"], new_password)
+    await _mark_token_used(token)
+
+    logger.info(f"Password reset successful for: {reset_doc['email']}")
+    return {"message": "Password reset successful"}
+
+async def _verify_reset_token(token: str) -> dict:
+    """Find and validate the reset token. Raises HTTPException on failure."""
     reset_doc = await db.password_reset_tokens.find_one({
         "token": token,
         "used": False
     })
-    
     if not reset_doc:
         logger.warning(f"Token not found or already used: {token[:10]}...")
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    
-    # Check expiry - handle both datetime and ISO string formats
-    expires_at = reset_doc["expires_at"]
-    
-    # Convert to datetime if it's a string
+
+    expires_at = _parse_token_expiry(reset_doc["expires_at"])
+
+    current_time = datetime.now(timezone.utc)
+    logger.info(f"Token expires at: {expires_at}, Current time: {current_time}")
+
+    if current_time > expires_at:
+        logger.warning(f"Token expired: {token[:10]}...")
+        raise HTTPException(status_code=400, detail="Reset token has expired. Please request a new one.")
+
+    return reset_doc
+
+def _parse_token_expiry(expires_at) -> datetime:
+    """Normalize expires_at to a timezone-aware datetime."""
     if isinstance(expires_at, str):
         try:
             expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
         except Exception as e:
             logger.error(f"Failed to parse expiry date: {e}")
             raise HTTPException(status_code=400, detail="Invalid token format")
-    
-    # Make expires_at timezone-aware if it isn't
+
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
-    
-    current_time = datetime.now(timezone.utc)
-    
-    logger.info(f"Token expires at: {expires_at}, Current time: {current_time}")
-    
-    if current_time > expires_at:
-        logger.warning(f"Token expired: {token[:10]}...")
-        raise HTTPException(status_code=400, detail="Reset token has expired. Please request a new one.")
-    
-    # Validate password
-    if len(new_password) < 6:
+
+    return expires_at
+
+def _validate_new_password(password: str):
+    """Raise HTTPException if the password doesn't meet requirements."""
+    if len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
-    
-    # Update password
+
+async def _update_user_password(email: str, new_password: str):
+    """Hash and store the new password for the given email."""
     hashed = hash_password(new_password)
     result = await db.users.update_one(
-        {"email": reset_doc["email"]},
+        {"email": email},
         {"$set": {"password_hash": hashed}}
     )
-    
     if result.matched_count == 0:
-        logger.error(f"User not found for email: {reset_doc['email']}")
+        logger.error(f"User not found for email: {email}")
         raise HTTPException(status_code=400, detail="User not found")
-    
-    # Mark token as used
+
+async def _mark_token_used(token: str):
+    """Mark a reset token as used so it cannot be reused."""
     await db.password_reset_tokens.update_one(
         {"token": token},
         {"$set": {"used": True}}
     )
-    
-    logger.info(f"Password reset successful for: {reset_doc['email']}")
-    
-    return {"message": "Password reset successful"}
 
 # ============ Cake Routes ============
 
