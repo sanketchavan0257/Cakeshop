@@ -349,7 +349,7 @@ textarea.form-input {
   padding-left: 40px;
 }
 
-.form-input-icon svg {
+.form-input-icon > svg {
   position: absolute;
   left: 12px;
   top: 50%;
@@ -360,21 +360,39 @@ textarea.form-input {
   pointer-events: none;
 }
 
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper .form-input {
+  padding-right: 44px;
+}
+
 .password-toggle {
   position: absolute;
-  right: 12px;
+  right: 4px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   color: var(--text-secondary);
-  padding: 4px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover {
+  color: var(--text);
 }
 
 .password-toggle svg {
   width: 18px;
   height: 18px;
+  pointer-events: none;
 }
 
 select.form-input {
