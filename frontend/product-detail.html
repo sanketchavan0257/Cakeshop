@@ -107,12 +107,42 @@
         <p class="description" id="cake-description"></p>
         <div class="price-section">
           <span class="price" id="cake-price"></span>
-          <span class="price-note">for 500g</span>
+          <span class="price-note" id="price-note">for 500g</span>
         </div>
         <div id="stock-status" style="margin-bottom:20px"></div>
-        <div id="flavors-container">
+        <div id="flavors-container" style="margin-bottom:20px">
           <p style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text)">Available Flavors</p>
           <div class="flavors" id="flavors-list"></div>
+        </div>
+
+        <!-- Add to Cart Section -->
+        <div id="cart-section" class="hidden" style="border-top:1px solid var(--border);padding-top:20px">
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="weight-select">Weight</label>
+              <select id="weight-select" class="form-input" data-testid="weight-select">
+                <option value="500g">500g (1x)</option>
+                <option value="1kg">1 Kg (2x)</option>
+                <option value="1.5kg">1.5 Kg (3x)</option>
+                <option value="2kg">2 Kg (4x)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="flavor-select">Flavor</label>
+              <select id="flavor-select" class="form-input" data-testid="flavor-select"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="delivery-date">Delivery Date</label>
+            <input type="date" id="delivery-date" class="form-input" data-testid="delivery-date">
+          </div>
+          <div class="form-group">
+            <label for="cake-message">Message on Cake (optional)</label>
+            <input type="text" id="cake-message" class="form-input" placeholder="e.g., Happy Birthday!" data-testid="cake-message">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="addToCart()" id="add-cart-btn" data-testid="add-to-cart-button">
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>
@@ -120,6 +150,8 @@
 
   <script src="/js/app.js"></script>
   <script>
+    let currentCake = null;
+
     document.addEventListener('DOMContentLoaded', async () => {
       await checkAuthStatus();
       buildNavbar('navbar');
@@ -131,39 +163,95 @@
         window.location.href = '/';
         return;
       }
+
+      // Set min delivery date to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('delivery-date').min = tomorrow.toISOString().split('T')[0];
+      document.getElementById('delivery-date').value = tomorrow.toISOString().split('T')[0];
+
+      // Update price on weight change
+      document.getElementById('weight-select').addEventListener('change', updateDisplayPrice);
+
       await loadCake(cakeId);
     });
 
+    function updateDisplayPrice() {
+      if (!currentCake) return;
+      const mult = { '500g': 1, '1kg': 2, '1.5kg': 3, '2kg': 4 };
+      const w = document.getElementById('weight-select').value;
+      const price = currentCake.base_price * (mult[w] || 1);
+      document.getElementById('cake-price').textContent = '\u20B9' + price;
+      document.getElementById('price-note').textContent = 'for ' + w;
+    }
+
     async function loadCake(cakeId) {
       try {
-        const cake = await apiCall(`/cakes/${cakeId}`);
+        currentCake = await apiCall(`/cakes/${cakeId}`);
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('product-content').classList.remove('hidden');
 
-        document.getElementById('cake-image').src = cake.image_url;
-        document.getElementById('cake-image').alt = cake.name;
-        document.getElementById('cake-name').textContent = cake.name;
-        document.getElementById('cake-category').textContent = cake.category;
-        document.getElementById('cake-description').textContent = cake.description;
-        document.getElementById('cake-price').textContent = '\u20B9' + cake.base_price;
-        document.title = `${cake.name} - CakeCraft`;
+        document.getElementById('cake-image').src = currentCake.image_url;
+        document.getElementById('cake-image').alt = currentCake.name;
+        document.getElementById('cake-name').textContent = currentCake.name;
+        document.getElementById('cake-category').textContent = currentCake.category;
+        document.getElementById('cake-description').textContent = currentCake.description;
+        document.getElementById('cake-price').textContent = '\u20B9' + currentCake.base_price;
+        document.title = `${currentCake.name} - CakeCraft`;
 
         const statusEl = document.getElementById('stock-status');
-        if (cake.in_stock) {
+        if (currentCake.in_stock) {
           statusEl.innerHTML = '<span class="stock-badge in-stock">In Stock</span>';
+          document.getElementById('cart-section').classList.remove('hidden');
         } else {
           statusEl.innerHTML = '<span class="stock-badge out-of-stock">Out of Stock</span>';
         }
 
         const flavorsList = document.getElementById('flavors-list');
-        if (cake.flavors && cake.flavors.length) {
-          flavorsList.innerHTML = cake.flavors.map(f => `<span class="flavor-chip">${f}</span>`).join('');
+        const flavorSelect = document.getElementById('flavor-select');
+        if (currentCake.flavors && currentCake.flavors.length) {
+          flavorsList.innerHTML = currentCake.flavors.map(f => `<span class="flavor-chip">${f}</span>`).join('');
+          flavorSelect.innerHTML = currentCake.flavors.map(f => `<option value="${f}">${f}</option>`).join('');
         } else {
           document.getElementById('flavors-container').classList.add('hidden');
+          flavorSelect.innerHTML = '<option value="Classic">Classic</option>';
         }
       } catch (err) {
         showToast('Cake not found', 'error');
         setTimeout(() => { window.location.href = '/'; }, 1000);
+      }
+    }
+
+    async function addToCart() {
+      if (!getUser()) { window.location.href = '/login.html'; return; }
+      if (!currentCake) return;
+
+      const btn = document.getElementById('add-cart-btn');
+      const deliveryDate = document.getElementById('delivery-date').value;
+      if (!deliveryDate) { showToast('Please select a delivery date', 'error'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Adding...';
+
+      try {
+        await apiCall('/cart', {
+          method: 'POST',
+          body: {
+            cake_id: currentCake.cake_id,
+            weight: document.getElementById('weight-select').value,
+            flavor: document.getElementById('flavor-select').value,
+            message: document.getElementById('cake-message').value,
+            delivery_date: deliveryDate,
+            quantity: 1
+          }
+        });
+        showToast('Added to cart!', 'success');
+        btn.textContent = 'Added!';
+        setTimeout(() => { btn.disabled = false; btn.textContent = 'Add to Cart'; }, 1500);
+      } catch(e) {
+        showToast(e.message || 'Failed to add to cart', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Add to Cart';
       }
     }
   </script>

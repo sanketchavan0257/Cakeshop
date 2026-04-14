@@ -788,7 +788,10 @@ async def admin_get_orders(request: Request, status: Optional[str] = None):
 @api_router.put("/admin/orders/{order_id}")
 async def admin_update_order(order_id: str, status: str, request: Request):
     await get_current_admin(request)
-    result = await db.orders.update_one({"order_id": order_id}, {"$set": {"status": status}})
+    result = await db.orders.update_one(
+        {"order_id": order_id},
+        {"$set": {"order_status": status, "status": status}}
+    )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
     return {"message": "Order updated"}

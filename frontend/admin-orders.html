@@ -6,93 +6,32 @@
   <title>Manage Orders - CakeCraft Admin</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    .order-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .order-id {
-      font-family: var(--font-body);
-      font-size: 13px;
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-    .order-date {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-    .order-status {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .order-status.pending { background: rgba(208,184,168,0.2); color: var(--primary-hover); }
-    .order-status.confirmed { background: rgba(129,178,154,0.15); color: var(--success); }
-    .order-status.delivered { background: rgba(129,178,154,0.25); color: #4a8b6f; }
-    .order-status.cancelled { background: rgba(224,122,95,0.15); color: var(--error); }
-    .order-customer {
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .order-detail {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-    .order-amount {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--primary);
-      font-family: var(--font-body);
-    }
-    .order-items-list {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-    }
-    .order-item {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--text-secondary);
-      padding: 4px 0;
-    }
-    .order-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-    .order-actions .btn { font-size: 12px; padding: 6px 14px; }
-    .summary-row {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-    .summary-row .stat-card { flex: 1; min-width: 140px; }
+    .order-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:16px;transition:box-shadow .2s}
+    .order-card:hover{box-shadow:0 4px 20px rgba(44,30,22,.06)}
+    .order-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+    .order-id{font-family:var(--font-body);font-size:12px;color:var(--text-secondary);font-weight:500;letter-spacing:.04em}
+    .order-date{font-size:12px;color:var(--text-secondary)}
+    .order-customer{font-weight:600;color:var(--text);font-size:15px;margin-bottom:2px}
+    .order-detail{font-size:13px;color:var(--text-secondary);line-height:1.6}
+    .order-amount{font-size:1.25rem;font-weight:700;color:var(--primary);font-family:var(--font-body)}
+    .order-items-list{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+    .order-item{display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);padding:4px 0}
+    .order-actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center}
+    .order-actions .btn{font-size:12px;padding:6px 14px}
+    .status-select{padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:12px;color:var(--text);background:var(--surface);cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%235C4A3D' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+    .status-badge{display:inline-block;padding:4px 12px;border-radius:9999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+    .status-badge.pending{background:rgba(208,184,168,.2);color:var(--primary-hover)}
+    .status-badge.confirmed{background:rgba(129,178,154,.15);color:var(--success)}
+    .status-badge.delivered{background:rgba(129,178,154,.3);color:#3d7a5c}
+    .status-badge.cancelled{background:rgba(224,122,95,.15);color:var(--error)}
+    .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+    .filter-btn{padding:7px 16px;border-radius:var(--radius);border:1px solid var(--border);background:transparent;cursor:pointer;font-family:var(--font-body);font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:500;color:var(--text);transition:all .2s}
+    .filter-btn:hover{background:rgba(208,184,168,.1)}
+    .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   </style>
 </head>
 <body>
   <div id="navbar"></div>
-
   <section class="section">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
       <a href="/admin.html" style="color:var(--primary);display:flex;align-items:center;gap:4px;font-size:14px">
@@ -102,26 +41,24 @@
     </div>
     <h1 class="section-title" data-testid="admin-orders-heading">Manage Orders</h1>
     <p class="section-subtitle">View and manage customer orders</p>
-
-    <div class="summary-row" id="order-stats"></div>
-
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px" id="order-stats"></div>
+    <div class="filter-row" id="filter-row" data-testid="order-filters"></div>
     <div id="loading"><div class="spinner"></div></div>
     <div id="orders-list" class="hidden" data-testid="orders-list"></div>
-    <div class="empty-state hidden" id="empty-state" data-testid="empty-orders">No orders yet</div>
+    <div class="empty-state hidden" id="empty-state" data-testid="empty-orders">No orders found</div>
   </section>
 
   <script src="/js/app.js"></script>
   <script>
     let allOrders = [];
+    let currentFilter = 'all';
+    const statuses = ['all','pending','confirmed','delivered','cancelled'];
 
     document.addEventListener('DOMContentLoaded', async () => {
       const user = await checkAuthStatus();
-      if (!user || user.role !== 'admin') {
-        showToast('Admin access required', 'error');
-        window.location.href = '/login.html';
-        return;
-      }
+      if (!user || user.role !== 'admin') { showToast('Admin access required','error'); window.location.href='/login.html'; return; }
       buildNavbar('navbar');
+      renderFilters();
       await loadOrders();
     });
 
@@ -131,93 +68,87 @@
         document.getElementById('loading').classList.add('hidden');
         renderStats();
         renderOrders();
-      } catch (err) {
-        showToast('Failed to load orders', 'error');
-        document.getElementById('loading').classList.add('hidden');
-      }
+      } catch(e) { showToast('Failed to load orders','error'); document.getElementById('loading').classList.add('hidden'); }
     }
 
+    function renderFilters() {
+      document.getElementById('filter-row').innerHTML = statuses.map(s =>
+        `<button class="filter-btn ${s===currentFilter?'active':''}" onclick="setFilter('${s}')" data-testid="filter-${s}">${s}</button>`
+      ).join('');
+    }
+
+    function setFilter(f) { currentFilter=f; renderFilters(); renderOrders(); }
+
+    function getStatus(o) { return o.order_status || o.status || 'pending'; }
+
     function renderStats() {
-      const pending = allOrders.filter(o => o.order_status === 'pending' || o.status === 'pending').length;
-      const total = allOrders.reduce((s, o) => s + (o.total_amount || 0), 0);
-      document.getElementById('order-stats').innerHTML = `
-        <div class="stat-card">
-          <p class="stat-value">${allOrders.length}</p>
-          <p class="stat-label">Total Orders</p>
-        </div>
-        <div class="stat-card">
-          <p class="stat-value" style="color:var(--primary)">${pending}</p>
-          <p class="stat-label">Pending</p>
-        </div>
-        <div class="stat-card">
-          <p class="stat-value">${'\u20B9'}${total.toLocaleString()}</p>
-          <p class="stat-label">Revenue</p>
-        </div>
-      `;
+      const pending=allOrders.filter(o=>getStatus(o)==='pending').length;
+      const confirmed=allOrders.filter(o=>getStatus(o)==='confirmed').length;
+      const delivered=allOrders.filter(o=>getStatus(o)==='delivered').length;
+      const revenue=allOrders.reduce((s,o)=>s+(o.total_amount||0),0);
+      document.getElementById('order-stats').innerHTML=`
+        <div class="stat-card"><p class="stat-value">${allOrders.length}</p><p class="stat-label">Total Orders</p></div>
+        <div class="stat-card"><p class="stat-value" style="color:var(--primary)">${pending}</p><p class="stat-label">Pending</p></div>
+        <div class="stat-card"><p class="stat-value success">${confirmed+delivered}</p><p class="stat-label">Confirmed / Delivered</p></div>
+        <div class="stat-card"><p class="stat-value">${'\u20B9'}${revenue.toLocaleString()}</p><p class="stat-label">Revenue</p></div>`;
     }
 
     function renderOrders() {
-      const list = document.getElementById('orders-list');
-      const empty = document.getElementById('empty-state');
-
-      if (allOrders.length === 0) {
-        empty.classList.remove('hidden');
-        return;
-      }
-
-      empty.classList.add('hidden');
-      list.classList.remove('hidden');
-
-      list.innerHTML = allOrders.map(order => {
-        const status = order.order_status || order.status || 'pending';
-        const date = order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-        const items = order.items || [];
-        const address = order.address?.full_address || '';
-
-        return `
-          <div class="order-card" data-testid="order-${order.order_id}">
-            <div class="order-header">
-              <div>
-                <div class="order-id">Order #${(order.order_id || '').slice(0, 8)}...</div>
-                <div class="order-customer">${order.user_name || 'Customer'}</div>
-                <div class="order-detail">${order.user_email || ''} ${order.user_mobile ? '| ' + order.user_mobile : ''}</div>
-                ${address ? `<div class="order-detail">${address}</div>` : ''}
-              </div>
-              <div style="text-align:right">
-                <span class="order-status ${status}">${status}</span>
-                <div class="order-date" style="margin-top:6px">${date}</div>
-                <div class="order-amount" style="margin-top:4px">${'\u20B9'}${order.total_amount || 0}</div>
-              </div>
+      const list=document.getElementById('orders-list'), empty=document.getElementById('empty-state');
+      let filtered = currentFilter==='all' ? allOrders : allOrders.filter(o=>getStatus(o)===currentFilter);
+      if(!filtered.length){ list.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden'); list.classList.remove('hidden');
+      list.innerHTML = filtered.map(order => {
+        const st=getStatus(order);
+        const date=order.created_at?new Date(order.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+        const items=order.items||[];
+        const addr=order.address?.full_address||'';
+        return `<div class="order-card" data-testid="order-${order.order_id}">
+          <div class="order-header">
+            <div>
+              <div class="order-id">ORDER #${(order.order_id||'').slice(0,8).toUpperCase()}</div>
+              <div class="order-customer">${order.user_name||'Customer'}</div>
+              <div class="order-detail">${order.user_email||''} ${order.user_mobile?'| '+order.user_mobile:''}</div>
+              ${addr?`<div class="order-detail" style="margin-top:4px">${addr}</div>`:''}
             </div>
-            ${items.length ? `
-              <div class="order-items-list">
-                ${items.map(item => `
-                  <div class="order-item">
-                    <span>${item.cake_name || item.name || 'Cake'} (${item.weight || ''} ${item.flavor || ''})</span>
-                    <span>x${item.quantity || 1}</span>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-            <div class="order-actions">
-              <button class="btn btn-outline" onclick="deleteOrder('${order.order_id}')" data-testid="delete-order-${order.order_id}">Delete</button>
+            <div style="text-align:right">
+              <span class="status-badge ${st}">${st}</span>
+              <div class="order-date" style="margin-top:6px">${date}</div>
+              <div class="order-amount" style="margin-top:4px">${'\u20B9'}${order.total_amount||0}</div>
             </div>
           </div>
-        `;
+          ${items.length?`<div class="order-items-list">${items.map(i=>`<div class="order-item"><span>${i.cake_name||i.name||'Cake'} ${i.weight?'('+i.weight+')':''} ${i.flavor||''}</span><span>x${i.quantity||1} - ${'\u20B9'}${i.price||0}</span></div>`).join('')}</div>`:''}
+          <div class="order-actions">
+            <span style="font-size:12px;color:var(--text-secondary);margin-right:4px">Update Status:</span>
+            <select class="status-select" onchange="updateStatus('${order.order_id}',this.value)" data-testid="status-select-${order.order_id}">
+              ${['pending','confirmed','delivered','cancelled'].map(s=>`<option value="${s}" ${s===st?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+            </select>
+            <button class="btn btn-outline" style="margin-left:auto" onclick="deleteOrder('${order.order_id}')" data-testid="delete-order-${order.order_id}">
+              ${Icons.trash} Delete
+            </button>
+          </div>
+        </div>`;
       }).join('');
     }
 
-    async function deleteOrder(orderId) {
-      if (!confirm('Delete this order?')) return;
+    async function updateStatus(orderId, newStatus) {
       try {
-        await apiCall('/admin/orders/' + orderId, { method: 'DELETE' });
-        allOrders = allOrders.filter(o => o.order_id !== orderId);
-        renderStats();
-        renderOrders();
-        showToast('Order deleted', 'success');
-      } catch (err) {
-        showToast('Failed to delete order', 'error');
-      }
+        await apiCall(`/admin/orders/${orderId}?status=${newStatus}`, { method:'PUT' });
+        const idx=allOrders.findIndex(o=>o.order_id===orderId);
+        if(idx>-1){ allOrders[idx].order_status=newStatus; allOrders[idx].status=newStatus; }
+        renderStats(); renderOrders();
+        showToast(`Order updated to ${newStatus}`,'success');
+      } catch(e){ showToast('Failed to update order','error'); }
+    }
+
+    async function deleteOrder(orderId) {
+      if(!confirm('Delete this order permanently?')) return;
+      try {
+        await apiCall('/admin/orders/'+orderId,{method:'DELETE'});
+        allOrders=allOrders.filter(o=>o.order_id!==orderId);
+        renderStats(); renderOrders();
+        showToast('Order deleted','success');
+      } catch(e){ showToast('Failed to delete order','error'); }
     }
   </script>
 </body>

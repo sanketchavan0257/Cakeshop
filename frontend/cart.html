@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Cart - CakeCraft</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .cart-layout{display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start}
+    @media(max-width:900px){.cart-layout{grid-template-columns:1fr}}
+    .cart-item{display:flex;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+    .cart-item-img{width:90px;height:90px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);flex-shrink:0}
+    .cart-item-info{flex:1;min-width:0}
+    .cart-item-name{font-weight:600;color:var(--text);font-size:15px;margin-bottom:4px}
+    .cart-item-meta{font-size:13px;color:var(--text-secondary);line-height:1.6}
+    .cart-item-price{font-weight:700;color:var(--primary);font-size:1.1rem;font-family:var(--font-body);margin-top:6px}
+    .cart-item-remove{background:none;border:none;cursor:pointer;color:var(--error);padding:4px;opacity:.7;transition:opacity .2s}
+    .cart-item-remove:hover{opacity:1}
+    .cart-item-remove svg{width:18px;height:18px}
+    .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;position:sticky;top:80px}
+    .summary-card h3{font-family:var(--font-heading);font-size:1.25rem;margin-bottom:16px;color:var(--text)}
+    .summary-row{display:flex;justify-content:space-between;font-size:14px;color:var(--text-secondary);padding:8px 0;border-bottom:1px solid var(--border)}
+    .summary-total{display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;color:var(--text);padding:12px 0 0}
+    .checkout-section{margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+    .checkout-section h4{font-family:var(--font-body);font-weight:600;font-size:14px;color:var(--text);margin-bottom:12px}
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+  <section class="section">
+    <h1 class="section-title" data-testid="cart-heading">My Cart</h1>
+    <p class="section-subtitle" id="cart-subtitle">Loading your cart...</p>
+
+    <div id="loading"><div class="spinner"></div></div>
+
+    <div class="cart-layout hidden" id="cart-content">
+      <div id="cart-items" data-testid="cart-items"></div>
+      <div class="summary-card" id="cart-summary">
+        <h3>Order Summary</h3>
+        <div id="summary-lines"></div>
+        <div class="summary-total">
+          <span>Total</span>
+          <span id="total-price"></span>
+        </div>
+        <div class="checkout-section">
+          <h4>Delivery Details</h4>
+          <form id="checkout-form" data-testid="checkout-form">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="ch-name" class="form-input" required data-testid="checkout-name"></div>
+            <div class="form-group"><label>Email *</label><input type="email" id="ch-email" class="form-input" required data-testid="checkout-email"></div>
+            <div class="form-group"><label>Mobile *</label><input type="tel" id="ch-mobile" class="form-input" required placeholder="10-digit number" data-testid="checkout-mobile"></div>
+            <div class="form-group"><label>Street Address *</label><input type="text" id="ch-street" class="form-input" required data-testid="checkout-street"></div>
+            <div class="form-row">
+              <div class="form-group"><label>City *</label><input type="text" id="ch-city" class="form-input" required data-testid="checkout-city"></div>
+              <div class="form-group"><label>Pincode *</label><input type="text" id="ch-pincode" class="form-input" required data-testid="checkout-pincode"></div>
+            </div>
+            <div class="form-group"><label>State *</label><input type="text" id="ch-state" class="form-input" required data-testid="checkout-state"></div>
+            <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Payment: Cash on Delivery (COD)</p>
+            <button type="submit" class="btn btn-primary btn-full" id="place-order-btn" data-testid="place-order-button">Place Order</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state hidden" id="empty-cart" data-testid="empty-cart">
+      <p style="margin-bottom:16px">Your cart is empty</p>
+      <a href="/" class="btn btn-primary" data-testid="browse-cakes-link">Browse Cakes</a>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let cartItems = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuthStatus();
+      if (!user) { window.location.href='/login.html'; return; }
+      buildNavbar('navbar');
+      // Pre-fill checkout from user info
+      document.getElementById('ch-name').value = user.name || '';
+      document.getElementById('ch-email').value = user.email || '';
+      await loadCart();
+      document.getElementById('checkout-form').addEventListener('submit', placeOrder);
+    });
+
+    async function loadCart() {
+      try {
+        cartItems = await apiCall('/cart');
+        document.getElementById('loading').classList.add('hidden');
+        renderCart();
+      } catch(e) { showToast('Failed to load cart','error'); document.getElementById('loading').classList.add('hidden'); }
+    }
+
+    function renderCart() {
+      const content = document.getElementById('cart-content');
+      const empty = document.getElementById('empty-cart');
+      const subtitle = document.getElementById('cart-subtitle');
+
+      if (!cartItems.length) {
+        content.classList.add('hidden');
+        empty.classList.remove('hidden');
+        subtitle.textContent = '';
+        return;
+      }
+
+      empty.classList.add('hidden');
+      content.classList.remove('hidden');
+      subtitle.textContent = `${cartItems.length} item${cartItems.length>1?'s':''} in your cart`;
+
+      document.getElementById('cart-items').innerHTML = cartItems.map(item => `
+        <div class="cart-item" data-testid="cart-item-${item.cart_item_id}">
+          <img class="cart-item-img" src="${item.cake_image}" alt="${item.cake_name}" loading="lazy">
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.cake_name}</div>
+            <div class="cart-item-meta">
+              Weight: ${item.weight} | Flavor: ${item.flavor}<br>
+              ${item.message ? 'Message: '+item.message+'<br>' : ''}
+              Delivery: ${item.delivery_date} | Qty: ${item.quantity}
+            </div>
+            <div class="cart-item-price">${'\u20B9'}${item.price}</div>
+          </div>
+          <button class="cart-item-remove" onclick="removeItem('${item.cart_item_id}')" data-testid="remove-${item.cart_item_id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+      `).join('');
+
+      const total = cartItems.reduce((s,i) => s + (i.price * (i.quantity||1)), 0);
+      document.getElementById('summary-lines').innerHTML = cartItems.map(i =>
+        `<div class="summary-row"><span>${i.cake_name} (${i.weight})</span><span>${'\u20B9'}${i.price}</span></div>`
+      ).join('');
+      document.getElementById('total-price').textContent = '\u20B9' + total;
+    }
+
+    async function removeItem(cartItemId) {
+      try {
+        await apiCall('/cart/' + cartItemId, { method: 'DELETE' });
+        cartItems = cartItems.filter(i => i.cart_item_id !== cartItemId);
+        renderCart();
+        showToast('Item removed', 'success');
+      } catch(e) { showToast('Failed to remove item', 'error'); }
+    }
+
+    async function placeOrder(e) {
+      e.preventDefault();
+      const btn = document.getElementById('place-order-btn');
+      const total = cartItems.reduce((s,i) => s + (i.price * (i.quantity||1)), 0);
+
+      const body = {
+        items: cartItems.map(i => ({
+          cake_id: i.cake_id, cake_name: i.cake_name, weight: i.weight,
+          flavor: i.flavor, message: i.message, quantity: i.quantity||1, price: i.price
+        })),
+        total_amount: total,
+        user_name: document.getElementById('ch-name').value,
+        user_email: document.getElementById('ch-email').value,
+        user_mobile: document.getElementById('ch-mobile').value,
+        street: document.getElementById('ch-street').value,
+        city: document.getElementById('ch-city').value,
+        state: document.getElementById('ch-state').value,
+        pincode: document.getElementById('ch-pincode').value,
+        is_direct_order: false
+      };
+
+      btn.disabled = true;
+      btn.textContent = 'Placing order...';
+
+      try {
+        const data = await apiCall('/orders', { method: 'POST', body });
+        showToast('Order placed successfully!', 'success');
+        cartItems = [];
+        renderCart();
+        setTimeout(() => { window.location.href = '/orders.html'; }, 1000);
+      } catch(e) {
+        showToast(e.message || 'Failed to place order', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Place Order';
+      }
+    }
+  </script>
+</body>
+</html>

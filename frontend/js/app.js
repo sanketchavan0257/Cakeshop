@@ -125,11 +125,18 @@ function buildNavbar(containerId) {
     navLinks = `
       ${user.role === 'admin' ? `<a href="/admin.html" class="nav-btn" data-testid="admin-link">${Icons.layoutDashboard} Admin</a>` : ''}
       <a href="/" class="nav-btn" data-testid="home-link">${Icons.shoppingBag} Shop</a>
+      <a href="/cart.html" class="nav-btn" data-testid="cart-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+        Cart
+      </a>
+      <a href="/orders.html" class="nav-btn" data-testid="orders-link">${Icons.packages} Orders</a>
       <span class="nav-btn" style="cursor:default;opacity:0.7">${Icons.user} ${user.name || user.email}</span>
       <button class="nav-btn logout" onclick="handleLogout()" data-testid="logout-button">${Icons.logOut} Logout</button>
     `;
     mobileLinks = `
       <a href="/" class="nav-btn" data-testid="mobile-home-link">${Icons.shoppingBag} Shop</a>
+      <a href="/cart.html" class="nav-btn" data-testid="mobile-cart-link">Cart</a>
+      <a href="/orders.html" class="nav-btn" data-testid="mobile-orders-link">My Orders</a>
       ${user.role === 'admin' ? `<a href="/admin.html" class="nav-btn" data-testid="mobile-admin-link">${Icons.layoutDashboard} Admin Panel</a>` : ''}
       <button class="nav-btn logout" onclick="handleLogout()" data-testid="mobile-logout-button">${Icons.logOut} Logout</button>
     `;
