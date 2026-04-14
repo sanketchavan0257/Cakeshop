@@ -2,8 +2,7 @@
   "rewrites": [
     { "source": "/admin/orders", "destination": "/admin-orders.html" },
     { "source": "/admin/users", "destination": "/admin-users.html" },
-    { "source": "/admin/cakes", "destination": "/admin-cakes.html" },
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/admin/cakes", "destination": "/admin-cakes.html" }
   ],
   "headers": [
     {

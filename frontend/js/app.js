@@ -38,9 +38,14 @@ function showToast(message, type = 'info') {
 }
 
 /* ============ API Configuration ============ */
-/* API_BASE: Change this to your actual backend URL when deploying */
-/* For Vercel+Render: const API_BASE = 'https://your-backend.onrender.com/api'; */
-const API_BASE = (window.location.origin) + '/api';
+/*
+ * DEPLOYMENT SETUP:
+ * - For Vercel+Render: set BACKEND_URL below to your Render backend URL
+ *   Example: const BACKEND_URL = 'https://your-backend.onrender.com';
+ * - For same-origin (preview/local): leave as empty string ''
+ */
+const BACKEND_URL = '';
+const API_BASE = (BACKEND_URL || window.location.origin) + '/api';
 
 async function apiCall(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
