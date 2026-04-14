@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Premium Chocolate Truffle",
+    "description": "Rich dark chocolate cake with truffle ganache",
+    "base_price": 800,
+    "image_url": "https://images.unsplash.com/photo-1640794334523-b299f14d28db?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
+    "category": "Chocolate",
+    "stock": 10,
+    "in_stock": true,
+    "flavors": ["Chocolate", "Dark Chocolate", "White Chocolate"]
+  },
+  {
+    "name": "Strawberry Cream Delight",
+    "description": "Fresh strawberries with vanilla cream",
+    "base_price": 700,
+    "image_url": "https://images.unsplash.com/photo-1602663491496-73f07481dbea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxzdHJhd2JlcnJ5JTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
+    "category": "Fruit",
+    "stock": 8,
+    "in_stock": true,
+    "flavors": ["Strawberry", "Vanilla", "Mixed Berry"]
+  },
+  {
+    "name": "Classic Vanilla Bean",
+    "description": "Premium vanilla bean cake with butter cream",
+    "base_price": 650,
+    "image_url": "https://images.unsplash.com/photo-1536599524557-5f784dd53282?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHx2YW5pbGxhJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
+    "category": "Classic",
+    "stock": 12,
+    "in_stock": true,
+    "flavors": ["Vanilla", "French Vanilla", "Madagascar Vanilla"]
+  },
+  {
+    "name": "Golden Cheesecake",
+    "description": "New York style cheesecake with graham crust",
+    "base_price": 900,
+    "image_url": "https://images.unsplash.com/photo-1633062781822-e32867fe7d4a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwzfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
+    "category": "Cheesecake",
+    "stock": 6,
+    "in_stock": true,
+    "flavors": ["Classic", "Blueberry", "Caramel"]
+  },
+  {
+    "name": "Red Velvet Supreme",
+    "description": "Classic red velvet with cream cheese frosting",
+    "base_price": 750,
+    "image_url": "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "category": "Classic",
+    "stock": 0,
+    "in_stock": false,
+    "flavors": ["Red Velvet", "Pink Velvet"]
+  },
+  {
+    "name": "Black Forest Cake",
+    "description": "Chocolate layers with cherries and cream",
+    "base_price": 850,
+    "image_url": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "category": "Chocolate",
+    "stock": 7,
+    "in_stock": true,
+    "flavors": ["Chocolate Cherry", "Dark Forest"]
+  },
+  {
+    "name": "Butterscotch Bliss",
+    "description": "Caramel butterscotch with crunchy toppings",
+    "base_price": 700,
+    "image_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "category": "Special",
+    "stock": 9,
+    "in_stock": true,
+    "flavors": ["Butterscotch", "Caramel"]
+  },
+  {
+    "name": "Pineapple Paradise",
+    "description": "Tropical pineapple with fresh cream",
+    "base_price": 680,
+    "image_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "category": "Fruit",
+    "stock": 10,
+    "in_stock": true,
+    "flavors": ["Pineapple", "Tropical Mix"]
+  }
+]

@@ -9,6 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import List, Optional
+import json
 import os
 import logging
 import uuid
@@ -239,105 +240,16 @@ def _write_test_credentials(admin_email: str, admin_password: str):
         f.write("- POST /api/auth/logout\n")
 
 def _get_sample_cakes() -> list:
-    """Return the list of sample cake seed data."""
-    return [
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Premium Chocolate Truffle",
-            "description": "Rich dark chocolate cake with truffle ganache",
-            "base_price": 800,
-            "image_url": "https://images.unsplash.com/photo-1640794334523-b299f14d28db?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
-            "category": "Chocolate",
-            "stock": 10,
-            "in_stock": True,
-            "flavors": ["Chocolate", "Dark Chocolate", "White Chocolate"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Strawberry Cream Delight",
-            "description": "Fresh strawberries with vanilla cream",
-            "base_price": 700,
-            "image_url": "https://images.unsplash.com/photo-1602663491496-73f07481dbea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxzdHJhd2JlcnJ5JTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
-            "category": "Fruit",
-            "stock": 8,
-            "in_stock": True,
-            "flavors": ["Strawberry", "Vanilla", "Mixed Berry"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Classic Vanilla Bean",
-            "description": "Premium vanilla bean cake with butter cream",
-            "base_price": 650,
-            "image_url": "https://images.unsplash.com/photo-1536599524557-5f784dd53282?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHx2YW5pbGxhJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
-            "category": "Classic",
-            "stock": 12,
-            "in_stock": True,
-            "flavors": ["Vanilla", "French Vanilla", "Madagascar Vanilla"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Golden Cheesecake",
-            "description": "New York style cheesecake with graham crust",
-            "base_price": 900,
-            "image_url": "https://images.unsplash.com/photo-1633062781822-e32867fe7d4a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwzfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
-            "category": "Cheesecake",
-            "stock": 6,
-            "in_stock": True,
-            "flavors": ["Classic", "Blueberry", "Caramel"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Red Velvet Supreme",
-            "description": "Classic red velvet with cream cheese frosting",
-            "base_price": 750,
-            "image_url": "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?crop=entropy&cs=srgb&fm=jpg&q=85",
-            "category": "Classic",
-            "stock": 0,
-            "in_stock": False,
-            "flavors": ["Red Velvet", "Pink Velvet"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Black Forest Cake",
-            "description": "Chocolate layers with cherries and cream",
-            "base_price": 850,
-            "image_url": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?crop=entropy&cs=srgb&fm=jpg&q=85",
-            "category": "Chocolate",
-            "stock": 7,
-            "in_stock": True,
-            "flavors": ["Chocolate Cherry", "Dark Forest"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Butterscotch Bliss",
-            "description": "Caramel butterscotch with crunchy toppings",
-            "base_price": 700,
-            "image_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?crop=entropy&cs=srgb&fm=jpg&q=85",
-            "category": "Special",
-            "stock": 9,
-            "in_stock": True,
-            "flavors": ["Butterscotch", "Caramel"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "cake_id": str(uuid.uuid4()),
-            "name": "Pineapple Paradise",
-            "description": "Tropical pineapple with fresh cream",
-            "base_price": 680,
-            "image_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?crop=entropy&cs=srgb&fm=jpg&q=85",
-            "category": "Fruit",
-            "stock": 10,
-            "in_stock": True,
-            "flavors": ["Pineapple", "Tropical Mix"],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-    ]
+    """Load sample cake seed data from JSON and add runtime fields."""
+    seed_path = ROOT_DIR / "seed_cakes.json"
+    with open(seed_path) as f:
+        templates = json.load(f)
+
+    now = datetime.now(timezone.utc).isoformat()
+    for cake in templates:
+        cake["cake_id"] = str(uuid.uuid4())
+        cake["created_at"] = now
+    return templates
 
 async def _seed_sample_cakes():
     """Seed sample cakes if the collection is empty."""
