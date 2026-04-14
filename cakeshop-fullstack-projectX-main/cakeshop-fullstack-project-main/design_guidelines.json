@@ -1,0 +1,90 @@
+{
+  "theme": "light",
+  "archetype": "3 (Pastel & Soft) mixed with Swiss Contrast",
+  "vibe": "Premium, tactile, elegant, high-end bakery",
+  "colors": {
+    "background": "#FAFAF7",
+    "surface": "#FFFFFF",
+    "primary": "#D0B8A8",
+    "primary_hover": "#B89B88",
+    "secondary": "#F3D0D7",
+    "text_primary": "#2C1E16",
+    "text_secondary": "#5C4A3D",
+    "border": "rgba(44, 30, 22, 0.15)",
+    "error": "#E07A5F",
+    "success": "#81B29A"
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Playfair Display, serif",
+      "body": "Outfit, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-5xl sm:text-6xl tracking-tight leading-none",
+      "h2": "text-3xl sm:text-4xl tracking-tight leading-tight",
+      "h3": "text-xl sm:text-2xl",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm uppercase tracking-[0.15em] font-medium"
+    }
+  },
+  "layout": {
+    "spacing": "Generous spacing. Use p-8 to p-16 for main sections. gap-8 for grids.",
+    "cards": "Flat, no soft drop shadows. Use 1px sharp borders border-[#2C1E16]/15. 4 cards on desktop, 2 on mobile.",
+    "corners": "Subtle curves, rounded-md or rounded-lg maximum. Avoid pill shapes unless it's a specific badge."
+  },
+  "components": {
+    "buttons": "Solid primary or outline. Use tracking-wide, uppercase, Outfit font. text-sm. Example: hover:-translate-y-1 transition-transform.",
+    "inputs": "Shadcn defaults but remove default blue ring. Use focus:ring-1 focus:ring-[#2C1E16].",
+    "cards": "Hover states must have slight lift and image zoom. Image wrapper overflow-hidden.",
+    "navigation": "Glassmorphism: backdrop-blur-xl bg-[#FAFAF7]/80, sticky top-0, z-50, 1px bottom border."
+  },
+  "animations": {
+    "library": "framer-motion",
+    "page_load": "Fade in and slight slide up (y: 20 -> 0).",
+    "scroll": "Staggered reveal for product cards.",
+    "interaction": "Micro-interactions on hover (scale 1.05 for images inside cards)."
+  },
+  "testing": {
+    "requirements": "All interactive elements MUST include data-testid attribute in kebab-case (e.g., data-testid='add-to-cart-button')."
+  },
+  "media": {
+    "hero_background": "https://images.unsplash.com/photo-1726981897420-0778c14deedf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzN8MHwxfHNlYXJjaHwzfHxiYWtlcnklMjBpbnRlcmlvcnxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85",
+    "cakes": [
+      {
+        "name": "Premium Chocolate Truffle",
+        "url": "https://images.unsplash.com/photo-1640794334523-b299f14d28db?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Strawberry Cream",
+        "url": "https://images.unsplash.com/photo-1602663491496-73f07481dbea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxzdHJhd2JlcnJ5JTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Classic Vanilla Bean",
+        "url": "https://images.unsplash.com/photo-1536599524557-5f784dd53282?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHx2YW5pbGxhJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Golden Cheesecake",
+        "url": "https://images.unsplash.com/photo-1633062781822-e32867fe7d4a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwzfHxwcmVtaXVtJTIwY2FrZXxlbnwwfHx8fDE3NzU3NDM5OTR8MA&ixlib=rb-4.1.0&q=85"
+      }
+    ],
+    "avatars": [
+      "https://images.unsplash.com/photo-1680104072294-e9e15e26c5cc?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHw0fHxoYXBweSUyMGZhY2UlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1680104072375-92c7fa04cd0e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHwzfHxoYXBweSUyMGZhY2UlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzU3NDQwMjB8MA&ixlib=rb-4.1.0&q=85"
+    ]
+  },
+  "features": {
+    "cake_weight_selection": "Implement radio group or toggle buttons for 500g, 1kg, 1.5kg, 2kg. Dynamically change price text when changed.",
+    "waitlist_system": "If in-stock is false, replace 'Add to Cart' with 'Join Waitlist'. Show waitlist status in Dashboard.",
+    "admin_panel": "Use a condensed data grid for cakes, stock, orders. Hide emotional design elements here and focus on utility."
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the JSON object configuration for colors, fonts, and images.",
+    "Use Shadcn UI for complex components like dropdowns, selects, and dialogs. Style them to match the pastel & soft aesthetic.",
+    "Use pure Tailwind/HTML for the homepage hero and product card layouts. Avoid Shadcn Card where creative layout is needed.",
+    "Implement Framer Motion for scroll animations and hover interactions.",
+    "Install and use lucide-react for standard icons.",
+    "Use the exact media URLs provided under the 'media' property.",
+    "Add data-testid attributes to all form inputs, buttons, and links."
+  ]
+}
