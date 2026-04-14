@@ -292,8 +292,8 @@ async def register(user_data: UserRegister, response: Response):
         key="access_token",
         value=token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
     
@@ -301,7 +301,8 @@ async def register(user_data: UserRegister, response: Response):
         "_id": user_id,
         "name": user_data.name,
         "email": email,
-        "role": "user"
+        "role": "user",
+        "token": token
     }
 
 @api_router.post("/auth/login")
@@ -318,8 +319,8 @@ async def login(credentials: UserLogin, response: Response):
         key="access_token",
         value=token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
     
@@ -327,7 +328,8 @@ async def login(credentials: UserLogin, response: Response):
         "_id": user_id,
         "name": user.get("name"),
         "email": user.get("email"),
-        "role": user.get("role", "user")
+        "role": user.get("role", "user"),
+        "token": token
     }
 
 @api_router.get("/auth/me")

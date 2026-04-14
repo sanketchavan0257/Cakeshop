@@ -64,7 +64,7 @@
             method: 'POST',
             body: { email, password },
           });
-          saveAuth(data);
+          saveAuth(data, data.token);
           showToast('Welcome back!', 'success');
           setTimeout(() => {
             window.location.href = data.role === 'admin' ? '/admin.html' : '/';

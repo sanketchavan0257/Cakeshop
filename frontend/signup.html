@@ -71,7 +71,7 @@
             method: 'POST',
             body: { name, email, password },
           });
-          saveAuth(data);
+          saveAuth(data, data.token);
           showToast('Account created successfully!', 'success');
           setTimeout(() => { window.location.href = '/'; }, 500);
         } catch (err) {

@@ -44,9 +44,11 @@ const API_BASE = (window.location.origin) + '/api';
 
 async function apiCall(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  const token = getToken();
+  const authHeaders = token ? { 'Authorization': `Bearer ${token}` } : {};
   const config = {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: { 'Content-Type': 'application/json', ...authHeaders, ...options.headers },
     ...options,
   };
   if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
@@ -166,5 +168,5 @@ async function handleLogout() {
     await apiCall('/auth/logout', { method: 'POST', body: {} });
   } catch {}
   clearAuth();
-  window.location.href = '/';
+  window.location.href = '/login.html';
 }
